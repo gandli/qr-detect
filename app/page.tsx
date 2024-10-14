@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const initStream = async () => {
       try {
-        await ready()
+        await ready();
 
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
@@ -22,88 +22,95 @@ export default function Home() {
             width: 512,
             height: 512,
           },
-        })
+        });
 
         if (videoRef.current) {
-          videoRef.current.srcObject = stream
-          videoRef.current.play()
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
         }
 
         const scanFrame = async () => {
-          if (!videoRef.current || !overlayCanvasRef.current) return
+          if (!videoRef.current || !overlayCanvasRef.current) return;
 
-          const canvas = document.createElement('canvas')
-          const videoWidth = videoRef.current.videoWidth
-          const videoHeight = videoRef.current.videoHeight
+          const canvas = document.createElement('canvas');
+          const videoWidth = videoRef.current.videoWidth;
+          const videoHeight = videoRef.current.videoHeight;
 
-          canvas.width = videoWidth
-          canvas.height = videoHeight
-          const ctx = canvas.getContext('2d')
-          if (!ctx) return
-          ctx.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight)
+          canvas.width = videoWidth;
+          canvas.height = videoHeight;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          ctx.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight);
 
           try {
-            const result: ScanResult | null = await scan(canvas, { includeRectCanvas: true })
-            setScanResult(result)
+            const result: ScanResult | null = await scan(canvas, { includeRectCanvas: true });
+            setScanResult(result);
 
-            const overlayCtx = overlayCanvasRef.current.getContext('2d')
+            const overlayCtx = overlayCanvasRef.current.getContext('2d');
             if (overlayCtx) {
-              const dpr = window.devicePixelRatio || 1
-              const scaledWidth = videoWidth * dpr
-              const scaledHeight = videoHeight * dpr
+              const dpr = window.devicePixelRatio || 1;
+              const scaledWidth = videoWidth * dpr;
+              const scaledHeight = videoHeight * dpr;
 
-              overlayCanvasRef.current.width = scaledWidth
-              overlayCanvasRef.current.height = scaledHeight
-              overlayCtx.scale(dpr, dpr)
+              overlayCanvasRef.current.width = scaledWidth;
+              overlayCanvasRef.current.height = scaledHeight;
+              overlayCtx.scale(dpr, dpr);
 
-              overlayCtx.clearRect(0, 0, videoWidth, videoHeight)
+              overlayCtx.clearRect(0, 0, videoWidth, videoHeight);
 
               // 绘制二维码矩形外框
               if (result?.rect) {
-                overlayCtx.strokeStyle = 'red'
-                overlayCtx.lineWidth = 2
+                overlayCtx.strokeStyle = 'red';
+                overlayCtx.lineWidth = 2;
                 overlayCtx.strokeRect(
                   result.rect.x,
                   result.rect.y,
                   result.rect.width,
                   result.rect.height
-                )
+                );
 
                 // 在矩形左上角标注扫描结果
                 if (result.text) {
-                  overlayCtx.font = '16px Arial'
-                  overlayCtx.fillStyle = 'blue'
-                  overlayCtx.fillText(result.text, result.rect.x + 5, result.rect.y - 5)
+                  overlayCtx.font = '16px Arial';
+                  overlayCtx.fillStyle = 'blue';
+                  overlayCtx.fillText(result.text, result.rect.x + 5, result.rect.y - 5);
                 }
               }
             }
           } catch (scanError) {
-            console.error("Scan error:", scanError)
+            console.error("Scan error:", scanError);
           }
-        }
+        };
 
-        const intervalId = setInterval(scanFrame, 100)
+        const intervalId = setInterval(scanFrame, 100);
 
-        setLoading(false)
+        setLoading(false);
 
         return () => {
-          clearInterval(intervalId)
-          stream.getTracks().forEach(track => track.stop())
-        }
-      } catch (e) {
-        setError('Failed to access the camera or start scanning.')
-        console.error(e)
-      }
-    }
+          clearInterval(intervalId);
 
-    initStream()
+          // 将 videoRef.current 赋值给一个本地变量
+          const videoElement = videoRef.current;
+          if (videoElement && videoElement.srcObject) {
+            (videoElement.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+          }
+        };
+      } catch (e) {
+        setError('Failed to access the camera or start scanning.');
+        console.error(e);
+      }
+    };
+
+    initStream();
 
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop())
+      // 确保在清理函数中使用了本地变量
+      const videoElement = videoRef.current;
+      if (videoElement && videoElement.srcObject) {
+        (videoElement.srcObject as MediaStream).getTracks().forEach(track => track.stop());
       }
-    }
-  }, [])
+    };
+  }, []);
 
   let content;
   if (error) {
