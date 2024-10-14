@@ -1,101 +1,147 @@
-import Image from "next/image";
+"use client"
+
+import { useEffect, useRef, useState } from 'react'
+import { scan, ready, ScanResult } from 'qr-scanner-wechat'
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const initStream = async () => {
+      try {
+        await ready()
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: { exact: "environment" }, // 使用后置摄像头
+            width: 512,
+            height: 512,
+          },
+        })
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          videoRef.current.play()
+        }
+
+        const scanFrame = async () => {
+          if (!videoRef.current || !overlayCanvasRef.current) return
+
+          const canvas = document.createElement('canvas')
+          const videoWidth = videoRef.current.videoWidth
+          const videoHeight = videoRef.current.videoHeight
+
+          canvas.width = videoWidth
+          canvas.height = videoHeight
+          const ctx = canvas.getContext('2d')
+          if (!ctx) return
+          ctx.drawImage(videoRef.current, 0, 0, videoWidth, videoHeight)
+
+          try {
+            const result: ScanResult | null = await scan(canvas, { includeRectCanvas: true })
+            setScanResult(result)
+
+            const overlayCtx = overlayCanvasRef.current.getContext('2d')
+            if (overlayCtx) {
+              const dpr = window.devicePixelRatio || 1
+              const scaledWidth = videoWidth * dpr
+              const scaledHeight = videoHeight * dpr
+
+              overlayCanvasRef.current.width = scaledWidth
+              overlayCanvasRef.current.height = scaledHeight
+              overlayCtx.scale(dpr, dpr)
+
+              overlayCtx.clearRect(0, 0, videoWidth, videoHeight)
+
+              // 绘制二维码矩形外框
+              if (result?.rect) {
+                overlayCtx.strokeStyle = 'red'
+                overlayCtx.lineWidth = 2
+                overlayCtx.strokeRect(
+                  result.rect.x,
+                  result.rect.y,
+                  result.rect.width,
+                  result.rect.height
+                )
+
+                // 在矩形左上角标注扫描结果
+                if (result.text) {
+                  overlayCtx.font = '16px Arial'
+                  overlayCtx.fillStyle = 'blue'
+                  overlayCtx.fillText(result.text, result.rect.x + 5, result.rect.y - 5)
+                }
+              }
+            }
+          } catch (scanError) {
+            console.error("Scan error:", scanError)
+          }
+        }
+
+        const intervalId = setInterval(scanFrame, 100)
+
+        setLoading(false)
+
+        return () => {
+          clearInterval(intervalId)
+          stream.getTracks().forEach(track => track.stop())
+        }
+      } catch (e) {
+        setError('Failed to access the camera or start scanning.')
+        console.error(e)
+      }
+    }
+
+    initStream()
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
+  let content;
+  if (error) {
+    content = <div className="text-red-500">{error}</div>;
+  } else if (loading) {
+    content = <div className="text-lg">Loading camera...</div>;
+  } else {
+    content = (
+      <div className="flex flex-col items-center justify-center">
+        <div className="relative w-full max-w-md">
+          <video
+            ref={videoRef}
+            id="video"
+            className="w-full h-auto"
+          />
+          <canvas
+            ref={overlayCanvasRef}
+            className="absolute top-0 left-0 w-full h-full"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* 显示扫描结果 */}
+        {scanResult?.text ? (
+          <div className="mt-4 p-4 w-full max-w-md bg-blue-100 text-blue-700 rounded-lg text-center">
+            Scanned Text: {scanResult.text}
+          </div>
+        ) : (
+          <div className="mt-4 p-4 w-full max-w-md bg-gray-100 text-gray-700 rounded-lg text-center">
+            No QR code detected.
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <main className="flex flex-col justify-between items-center h-screen p-4">
+      {content}
+    </main>
   );
 }
