@@ -127,11 +127,15 @@ export default function Home() {
 
         {/* 显示扫描结果 */}
         {scanResult?.text ? (
-          <div className="mt-4 p-4 w-full max-w-md bg-blue-100 text-blue-700 rounded-lg text-center">
+          <div
+            className="mt-4 p-4 w-full max-w-md bg-blue-100 text-blue-700 rounded-lg break-words min-h-[50px]"  // 使用 min-h 设置最小高度
+          >
             Scanned Text: {scanResult.text}
           </div>
         ) : (
-          <div className="mt-4 p-4 w-full max-w-md bg-gray-100 text-gray-700 rounded-lg text-center">
+          <div
+            className="mt-4 p-4 w-full max-w-md bg-gray-100 text-gray-700 rounded-lg text-center min-h-[50px]"  // 使用 min-h 设置最小高度
+          >
             No QR code detected.
           </div>
         )}
@@ -140,7 +144,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col justify-between items-center h-screen p-4">
+    <main className="flex flex-col justify-between items-center w-screen h-screen p-4">
       {content}
     </main>
   );
