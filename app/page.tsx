@@ -128,17 +128,18 @@ export default function Home() {
         {/* 显示扫描结果 */}
         {scanResult?.text ? (
           <div
-            className="mt-4 p-4 w-full max-w-md bg-blue-100 text-blue-700 rounded-lg break-words min-h-[50px]"  // 使用 min-h 设置最小高度
+            className="mt-4 p-4 w-[400px] bg-blue-100 text-blue-700 rounded-lg break-words whitespace-pre-wrap"
           >
             Scanned Text: {scanResult.text}
           </div>
         ) : (
           <div
-            className="mt-4 p-4 w-full max-w-md bg-gray-100 text-gray-700 rounded-lg text-center min-h-[50px]"  // 使用 min-h 设置最小高度
+            className="mt-4 p-4 w-[400px] bg-gray-100 text-gray-700 rounded-lg text-center"
           >
             No QR code detected.
           </div>
         )}
+
       </div>
     );
   }
