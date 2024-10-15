@@ -38,9 +38,9 @@ const Camera = () => {
   };
 
   return (
-    <div>
+    <div className='flex flex-col items-center'>
       <video ref={videoRef} autoPlay playsInline className='w-full h-auto' />
-      <Button onClick={toggleCamera} >
+      <Button onClick={toggleCamera} className='mt-4'>
         切换摄像头
       </Button>
     </div>
