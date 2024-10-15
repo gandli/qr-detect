@@ -33,7 +33,7 @@ export default function Home() {
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: false,
           video: {
-            facingMode: { exact: "environment" }, // 使用后置摄像头
+            // facingMode: { exact: "environment" }, // 使用后置摄像头
             width: 512,
             height: 512,
           },
