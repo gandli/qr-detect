@@ -142,9 +142,12 @@ const QRCodeScanner = () => {
             >
                 切换摄像头
             </Button>
+            <p className={`min-w-[350px] max-w-[350px] w-[350px] mt-4 p-4 bg-blue-100 text-blue-700 rounded-lg break-words whitespace-pre-wrap transition-opacity duration-300 ${result ? "opacity-100" : "opacity-0"}`}>
+                {result ? `扫描结果: ${result}` : "扫描中..."}
+            </p>
         </div>
     );
-    
+
 
 };
 
