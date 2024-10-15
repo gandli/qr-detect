@@ -142,15 +142,6 @@ const QRCodeScanner = () => {
             >
                 切换摄像头
             </Button>
-            {result ? (
-                <p className="mt-4 p-4 bg-blue-100 text-blue-700 rounded-lg break-words whitespace-pre-wrap max-w-[400px]">
-                    扫描结果: {result}
-                </p>
-            ) : (
-                <p className="mt-4 p-4 bg-blue-100 text-blue-700 rounded-lg break-words whitespace-pre-wrap max-w-[400px] invisible">
-                    扫描结果: 未检测到二维码
-                </p>
-            )}
         </div>
     );
     
