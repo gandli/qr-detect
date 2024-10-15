@@ -40,7 +40,7 @@ const Camera = () => {
   return (
     <div>
       <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: 'auto' }} />
-      <Button onClick={toggleCamera} className="mt-4 p-2 bg-blue-500 text-white rounded">
+      <Button onClick={toggleCamera} >
         切换摄像头
       </Button>
     </div>
