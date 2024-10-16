@@ -162,15 +162,14 @@ const QRCodeScanner = () => {
             <Button onClick={handleToggleCamera} className="mt-4">
                 切换摄像头
             </Button>
-            <p className={`min-w-[350px] max-w-[350px] w-[350px] mt-4 p-4 bg-blue-100 text-blue-700 rounded-lg break-words whitespace-pre-wrap transition-opacity duration-300 ${result ? "opacity-100" : "opacity-0"}`}>
+            <p className={`w-[350px] mt-4 p-4 bg-blue-100 text-blue-700 rounded-lg break-words whitespace-pre-wrap transition-opacity duration-300 ${result ? "opacity-100" : "opacity-0"}`}>
                 {result ? `扫描结果: ${result}` : "扫描中..."}
             </p>
 
             {meta && relationInfo && (
-                <div className="min-w-[350px] max-w-[350px] w-[350px] mt-4 p-4 bg-green-100 text-green-700 rounded-lg">
+                <div className="w-[350px] mt-4 p-4 bg-green-100 text-green-700 rounded-lg">
                     <h2 className="text-lg font-bold">Meta 信息:</h2>
                     <pre className="whitespace-pre-wrap break-words">{JSON.stringify(meta, null, 2)}</pre>
-                    
                     <h2 className="text-lg font-bold mt-4">Relation Info 信息:</h2>
                     <pre className="whitespace-pre-wrap break-words">{JSON.stringify(relationInfo, null, 2)}</pre>
                 </div>
